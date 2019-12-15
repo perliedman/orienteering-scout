@@ -17,7 +17,7 @@
   "dependencies": {
     "blob-to-buffer": "^1.2.8",
     "mapbox-gl": "^1.5.0",
-    "ocad2geojson": "^1.5.0",
+    "ocad2geojson": "^1.5.1",
     "reproject": "^1.2.5",
     "rollup-plugin-node-builtins": "^2.1.2",
     "rollup-plugin-node-globals": "^1.4.0",
