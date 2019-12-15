@@ -24,11 +24,14 @@
     },
     layers
   }
+  let bounds = bbox(geojson)
 
   onMount(() => {
     map = new mapboxgl.Map({
       container: mapContainer,
-      style
+      style,
+      center: [(bounds[0] + bounds[2]) / 2, (bounds[1] + bounds[3]) / 2],
+      zoom: 14
     })
     map.addControl(new mapboxgl.GeolocateControl({
       positionOptions: {
@@ -39,7 +42,7 @@
 
     map.on('load', () => {
       mapLoaded = true
-      map.fitBounds(bbox(geojson))
+      map.fitBounds(bounds)
     })
   })
 
