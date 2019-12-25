@@ -49,14 +49,14 @@
 </script>
 
 <style>
-  div {
+  .map-container {
     position: absolute;
     width: 100%;
     height: 100%;
   }
 </style>
 
-<div bind:this={mapContainer}></div>
+<div class="map-container" bind:this={mapContainer}></div>
 {#if !mapLoaded}
 <div class="loading">Please wait, loading map...</div>
 {/if}

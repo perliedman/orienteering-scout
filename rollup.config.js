@@ -11,6 +11,7 @@ import replace from '@rollup/plugin-replace';
 import dotenv from 'dotenv'
 import json from 'rollup-plugin-json'
 import cssOnly from 'rollup-plugin-css-only'
+import postcss from 'rollup-plugin-postcss';
 
 dotenv.config()
 const production = !process.env.ROLLUP_WATCH;
@@ -27,11 +28,12 @@ export default {
 		svelte({
 			// enable run-time checks when not in production
 			dev: !production,
-			// we'll extract any component CSS out into
-			// a separate file — better for performance
-			css: css => {
-				css.write('public/bundle.css');
-			}
+			emitCss: true
+			// // we'll extract any component CSS out into
+			// // a separate file — better for performance
+			// css: css => {
+			// 	css.write('public/bundle.css');
+			// }
 		}),
 
 		replace({
@@ -50,6 +52,18 @@ export default {
 			dedupe: importee => importee === 'svelte' || importee.startsWith('svelte/')
 		}),
 		commonjs(),
+    postcss({
+      extract: true,
+      minimize: true,
+      use: [
+        ['sass', {
+          includePaths: [
+            './theme',
+            './node_modules'
+          ]
+        }]
+      ]
+    }),
 		nodeGlobals(),
 		builtins(),
 
