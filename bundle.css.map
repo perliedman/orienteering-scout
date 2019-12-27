@@ -1,0 +1,12 @@
+{
+  "version": 3,
+  "file": "bundle.css",
+  "sources": [
+    "../src/Map.svelte"
+  ],
+  "sourcesContent": [
+    "<script>\n\timport { onMount } from 'svelte'\n  import mapboxgl from 'mapbox-gl'\n  import 'mapbox-gl/dist/mapbox-gl.css'\n  import bbox from '@turf/bbox'\n\n  mapboxgl.accessToken = '__mapboxGlToken__'\n\n  export let geojson\n  export let layers\n\n  let mapContainer\n  let map\n  let mapLoaded\n  let style = {\n    version: 8,\n    name: 'OCAD demo',\n    glyphs: 'mapbox://fonts/mapbox/{fontstack}/{range}.pbf',\n    sources: {\n      map: {\n        type: 'geojson',\n        data: geojson\n      }\n    },\n    layers\n  }\n  let bounds = bbox(geojson)\n\n  onMount(() => {\n    map = new mapboxgl.Map({\n      container: mapContainer,\n      style,\n      center: [(bounds[0] + bounds[2]) / 2, (bounds[1] + bounds[3]) / 2],\n      zoom: 14\n    })\n    map.addControl(new mapboxgl.GeolocateControl({\n      positionOptions: {\n        enableHighAccuracy: true\n      },\n      trackUserLocation: true\n    }));\n\n    map.on('load', () => {\n      mapLoaded = true\n      map.fitBounds(bounds)\n    })\n  })\n\n</script>\n\n<style>\n  .map-container {\n    position: absolute;\n    width: 100%;\n    height: 100%;\n  }\n</style>\n\n<div class=\"map-container\" bind:this={mapContainer}></div>\n{#if !mapLoaded}\n<div class=\"loading\">Please wait, loading map...</div>\n{/if}\n"
+  ],
+  "names": [],
+  "mappings": "AAmDE,cAAc,cAAC,CAAC,AACd,QAAQ,CAAE,QAAQ,CAClB,KAAK,CAAE,IAAI,CACX,MAAM,CAAE,IAAI,AACd,CAAC"
+}
