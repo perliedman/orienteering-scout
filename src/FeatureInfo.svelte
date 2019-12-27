@@ -9,32 +9,41 @@
   export let userCoord
   let snackbar
   let text
+  let lastFeature
 
   afterUpdate(() => {
     if (feature) {
       let fDistance
       if (userCoord) {
-        const { geometry } = feature
-        switch (geometry.type) {
-          case 'Point':
-            fDistance = distance(userCoord, geometry.coordinates)
-            break
-          case 'LineString':
-            fDistance = pointToLineDistance(userCoord, feature)
-            break
-          case 'Polygon':
-            const line = polygonToLine(feature)
-            fDistance = pointToLineDistance(userCoord, line)
-            break
-          default:
-            console.warn(`Unknown geometry type ${geometry.type}`)
+        try {
+          fDistance = getDistance()
+        } catch (e) {
+          console.error(e)
         }
       }
 
       text = feature && `${feature.properties.name}${fDistance ? ', ' + formatDistance(fDistance) : ''}`
-      snackbar.open()
+
+      if (lastFeature !== feature) {
+        snackbar.open()
+      }
     }
   })
+
+  function getDistance () {
+    const { geometry } = feature
+    switch (geometry.type) {
+      case 'Point':
+        return distance(userCoord, geometry.coordinates)
+      case 'LineString':
+        return pointToLineDistance(userCoord, feature)
+      case 'Polygon':
+        const line = polygonToLine(feature)
+        return pointToLineDistance(userCoord, line)
+      default:
+        console.warn(`Unknown geometry type ${geometry.type}`)
+    }
+  }
 
   function formatDistance (d) {
     let unit
