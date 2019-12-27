@@ -1,4 +1,6 @@
 <script>
+  import LinearProgress from '@smui/linear-progress';
+  import Snackbar, {Actions, Label} from '@smui/snackbar';
 	import { onMount } from 'svelte'
   import mapboxgl from 'mapbox-gl'
   import 'mapbox-gl/dist/mapbox-gl.css'
@@ -11,7 +13,45 @@
 
   let mapContainer
   let map
+  let snackbar
   let mapLoaded
+  let highlightColor = '#f64'
+  let highlightOpacity = 0.9
+  let highlights = [
+    {
+      'id': 'highlighted-Polygon',
+      'type': 'fill',
+      'source': 'map',
+      'paint': {
+        'fill-outline-color': highlightColor,
+        'fill-color': highlightColor,
+        'fill-opacity': highlightOpacity
+      },
+      'filter': ['==', ['id'], '']
+    },
+    {
+      'id': 'highlighted-LineString',
+      'type': 'line',
+      'source': 'map',
+      'paint': {
+        'line-color': highlightColor,
+        'line-width': 10,
+        'line-opacity': highlightOpacity
+      },
+      'filter': ['==', ['id'], '']
+    },
+    {
+      'id': 'highlighted-Point',
+      'type': 'circle',
+      'source': 'map',
+      'paint': {
+        'circle-color': highlightColor,
+        'circle-opacity': highlightOpacity,
+        'circle-radius': 10,
+      },
+      'filter': ['==', ['id'], '']
+    }
+  ]
   let style = {
     version: 8,
     name: 'OCAD demo',
@@ -22,9 +62,10 @@
         data: geojson
       }
     },
-    layers
+    layers: [...layers, ...highlights]
   }
   let bounds = bbox(geojson)
+  let highlighted
 
   onMount(() => {
     map = new mapboxgl.Map({
@@ -44,6 +85,33 @@
       mapLoaded = true
       map.fitBounds(bounds)
     })
+
+    map.on('click', e => {
+      const features = map.queryRenderedFeatures(e.point)
+
+      ;['Point', 'LineString', 'Polygon'].forEach(t =>
+        map.setFilter(`highlighted-${t}`, ['==', ['id'], '']))
+
+      if (features.length > 0) {
+        const feature = features[0]
+        const highlightLayer = `highlighted-${feature.geometry.type}`
+        const filterExpr = feature.properties.parentId
+          ? ['get', 'parentId']
+          : ['id']
+        const filterId = feature.properties.parentId
+          ? feature.properties.parentId
+          : feature.id
+        map.setFilter(highlightLayer, ['==', filterExpr, filterId])
+        highlighted = {
+          type: 'Feature',
+          properties: {
+            name: feature.layer.metadata.description
+          },
+          geometry: feature.geometry
+        }
+        snackbar.open()
+      }
+    })
   })
 
 </script>
@@ -57,6 +125,10 @@
 </style>
 
 <div class="map-container" bind:this={mapContainer}></div>
+<Snackbar bind:this={snackbar} labelText={highlighted && highlighted.properties.name}>
+  <Label></Label>
+</Snackbar>
 {#if !mapLoaded}
-<div class="loading">Please wait, loading map...</div>
+  <LinearProgress indeterminate />
+  <div class="loading">Please wait, loading map...</div>
 {/if}
