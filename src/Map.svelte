@@ -1,10 +1,10 @@
 <script>
   import LinearProgress from '@smui/linear-progress';
-  import Snackbar, {Actions, Label} from '@smui/snackbar';
 	import { onMount } from 'svelte'
   import mapboxgl from 'mapbox-gl'
   import 'mapbox-gl/dist/mapbox-gl.css'
   import bbox from '@turf/bbox'
+  import FeatureInfo from './FeatureInfo.svelte'
 
   mapboxgl.accessToken = '__mapboxGlToken__'
 
@@ -17,6 +17,7 @@
   let mapLoaded
   let highlightColor = '#f64'
   let highlightOpacity = 0.9
+  let userCoord
   let highlights = [
     {
       'id': 'highlighted-Polygon',
@@ -74,12 +75,14 @@
       center: [(bounds[0] + bounds[2]) / 2, (bounds[1] + bounds[3]) / 2],
       zoom: 14
     })
-    map.addControl(new mapboxgl.GeolocateControl({
+    let geolocateControl = new mapboxgl.GeolocateControl({
       positionOptions: {
         enableHighAccuracy: true
       },
       trackUserLocation: true
-    }));
+    })
+    geolocateControl.on('geolocate', e => userCoord = [e.coords.longitude, e.coords.latitude])
+    map.addControl(geolocateControl);
 
     map.on('load', () => {
       mapLoaded = true
@@ -109,7 +112,6 @@
           },
           geometry: feature.geometry
         }
-        snackbar.open()
       }
     })
   })
@@ -125,9 +127,7 @@
 </style>
 
 <div class="map-container" bind:this={mapContainer}></div>
-<Snackbar bind:this={snackbar} labelText={highlighted && highlighted.properties.name}>
-  <Label></Label>
-</Snackbar>
+<FeatureInfo feature={highlighted} userCoord={userCoord} />
 {#if !mapLoaded}
   <LinearProgress indeterminate />
   <div class="loading">Please wait, loading map...</div>
