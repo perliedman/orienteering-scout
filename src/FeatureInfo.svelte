@@ -2,14 +2,12 @@
   import distance from '@turf/distance'
   import pointToLineDistance from '@turf/point-to-line-distance'
   import polygonToLine from '@turf/polygon-to-line'
-  import Snackbar, {Actions, Label} from '@smui/snackbar';
+  import Card, { Content } from '@smui/card';
 	import { afterUpdate } from 'svelte'
 
   export let feature
   export let userCoord
-  let snackbar
   let text
-  let lastFeature
 
   afterUpdate(() => {
     if (feature) {
@@ -23,10 +21,6 @@
       }
 
       text = feature && `${feature.properties.name}${fDistance ? ', ' + formatDistance(fDistance) : ''}`
-
-      if (lastFeature !== feature) {
-        snackbar.open()
-      }
     }
   })
 
@@ -64,6 +58,20 @@
   }
 </script>
 
-<Snackbar bind:this={snackbar} labelText={text}>
-  <Label></Label>
-</Snackbar>
+<div class="card-container short">
+  <Card>
+    <Content>{text}</Content>
+  </Card>
+</div>
+
+<style>
+  .card-container {
+    font-family: Roboto,sans-serif;
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    bottom: 8px;
+  }
+</style>

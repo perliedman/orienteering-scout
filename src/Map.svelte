@@ -112,6 +112,8 @@
           },
           geometry: feature.geometry
         }
+      } else {
+        highlighted = null
       }
     })
   })
@@ -127,7 +129,9 @@
 </style>
 
 <div class="map-container" bind:this={mapContainer}></div>
-<FeatureInfo feature={highlighted} userCoord={userCoord} />
+{#if highlighted}
+  <FeatureInfo feature={highlighted} userCoord={userCoord} />
+{/if}
 {#if !mapLoaded}
   <LinearProgress indeterminate />
   <div class="loading">Please wait, loading map...</div>
