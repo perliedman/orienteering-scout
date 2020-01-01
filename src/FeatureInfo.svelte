@@ -2,12 +2,15 @@
   import distance from '@turf/distance'
   import pointToLineDistance from '@turf/point-to-line-distance'
   import polygonToLine from '@turf/polygon-to-line'
-  import Card, { Content } from '@smui/card';
-	import { afterUpdate } from 'svelte'
+  import Card, { Content, ActionIcons } from '@smui/card';
+  import IconButton from '@smui/icon-button';
+	import { afterUpdate, createEventDispatcher } from 'svelte'
 
   export let feature
   export let userCoord
   let text
+
+  const dispatch = createEventDispatcher()
 
   afterUpdate(() => {
     if (feature) {
@@ -56,12 +59,19 @@
 
     return `${d.toFixed(decimals)} ${unit}`
   }
+
+  function selectMode(mode) {
+    dispatch('selectmode', { mode, feature })
+  }
 </script>
 
 <div class="card-container short">
   <Card>
     <Content>{text}</Content>
-  </Card>
+    <ActionIcons>
+      <IconButton class="material-icons" on:click={() => selectMode('ar')}>camera_alt</IconButton>
+    </ActionIcons>
+</Card>
 </div>
 
 <style>

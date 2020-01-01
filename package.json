@@ -19,8 +19,11 @@
   },
   "dependencies": {
     "@turf/distance": "^6.0.1",
+    "@turf/point-on-feature": "^5.1.5",
     "@turf/point-to-line-distance": "^6.0.0",
     "@turf/polygon-to-line": "^6.0.3",
+    "aframe": "^1.0.3",
+    "ar.js": "^2.1.4",
     "blob-to-buffer": "^1.2.8",
     "mapbox-gl": "^1.5.0",
     "ocad2geojson": "^1.6.0",

@@ -1,6 +1,8 @@
 <script>
+	import Mode from './Mode.svelte'
 	import MapChooser from './MapChooser.svelte'
 	import Map from './Map.svelte'
+	import Ar from './Ar.svelte'
   import TopAppBar, {Row, Section, Title} from '@smui/top-app-bar';
 	import IconButton from '@smui/icon-button';
   import Drawer, {AppContent, Content, Scrim} from '@smui/drawer';
@@ -12,6 +14,16 @@
 	let mapLayers
 	let drawer
 	let drawerOpen = false
+	let mode = 'map'
+	let selectedFeature
+	// {
+	// 	type: 'Feature',
+	// 	properties: {},
+	// 	geometry: {
+	// 		type: 'Point',
+	// 		coordinates: [11.942042112350464, 57.73192114398164]
+	// 	}
+	// }
 
 	function loadMap(map) {
 		// const projDef = '+proj=utm +zone=33 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs'
@@ -22,6 +34,11 @@
 			mapGeoJson = toWgs84(ocadToGeoJson(ocadFile), projDef)
 			mapLayers = ocadToMapboxGlStyle(ocadFile, {source: 'map', sourceLayer: ''})
 		})
+	}
+
+	function selectMode ({ detail: { mode: nextMode, feature }}) {
+		mode = nextMode
+		selectedFeature = feature
 	}
 </script>
 
@@ -52,5 +69,15 @@
 {#if (!mapGeoJson || !mapLayers)}
 	<MapChooser on:mapselected={e => loadMap(e.detail)} />
 {:else}
-	<Map geojson={mapGeoJson} layers={mapLayers} />
+	<Mode {mode} name="map">
+		<Map
+			geojson={mapGeoJson}
+			layers={mapLayers}
+			on:selectmode={selectMode} />
+	</Mode>
+	<Mode {mode} name="ar">
+		{#if selectedFeature}
+			<Ar features={[selectedFeature]}></Ar>
+		{/if}
+	</Mode>
 {/if}

@@ -130,7 +130,10 @@
 
 <div class="map-container" bind:this={mapContainer}></div>
 {#if highlighted}
-  <FeatureInfo feature={highlighted} userCoord={userCoord} />
+  <FeatureInfo
+    feature={highlighted}
+    userCoord={userCoord}
+    on:selectmode />
 {/if}
 {#if !mapLoaded}
   <LinearProgress indeterminate />
