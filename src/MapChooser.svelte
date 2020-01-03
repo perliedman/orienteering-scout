@@ -1,8 +1,10 @@
 <script>
 	import { createEventDispatcher } from 'svelte';
   import toBuffer from 'blob-to-buffer'
+  import Fab, { Icon } from '@smui/fab'
 
-	const dispatch = createEventDispatcher();
+  const dispatch = createEventDispatcher();
+  let fileInput
 
   function handleFileSelected (event) {
     const file = event.target.files[0]
@@ -18,7 +20,24 @@
 </script>
 
 <style>
+  .container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 </style>
 
-<h1>Select an OCAD map file</h1>
-<input type="file" accept=".ocd" on:change={handleFileSelected} />
+<div class="container">
+  <Fab extended color="primary" on:click={() => fileInput.click()}>
+    <Icon class="material-icons">cloud_upload</Icon>
+    Select an OCAD map file
+  </Fab>
+  <input
+    type="file"
+    accept=".ocd"
+    on:change={handleFileSelected}
+    bind:this={fileInput}
+    style="display: none"/>
+</div>
