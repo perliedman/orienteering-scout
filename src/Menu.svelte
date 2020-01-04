@@ -18,7 +18,7 @@
     <Text>Coordinate Reference</Text>
     <Meta>
       <Chip>
-        <Text>{crs}</Text>
+        <Text>{crs.epsg}</Text>
       </Chip>
     </Meta>
   </Item>

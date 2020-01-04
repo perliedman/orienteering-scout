@@ -17,8 +17,10 @@
 	let drawer
 	let drawerOpen = false
 	let crsDialogOpen = false
-	let crs = 3007
-	let crsDef = '+proj=tmerc +lat_0=0 +lon_0=12 +k=1 +x_0=150000 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs '
+	let crs = {
+		epsg: 3007,
+		proj: '+proj=tmerc +lat_0=0 +lon_0=12 +k=1 +x_0=150000 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs '
+	}
 
 	function loadMap(map) {
 		mapInfo = {
@@ -27,7 +29,7 @@
 
 		readOcad(map.content)
 		.then(ocadFile => {
-			mapGeoJson = toWgs84(ocadToGeoJson(ocadFile), crsDef)
+			mapGeoJson = toWgs84(ocadToGeoJson(ocadFile), crs.proj)
 			mapLayers = ocadToMapboxGlStyle(ocadFile, {source: 'map', sourceLayer: ''})
 		})
 	}
@@ -36,15 +38,14 @@
 		crsDialogOpen = true
 	}
 
-	function setCrs ({ detail: { crs: nextCrs } }) {
+	function setCrs ({ detail: { epsg } }) {
 		crsDialogOpen = false
-		window.fetch(`https://epsg.io/${nextCrs}.proj4`)
+		window.fetch(`https://epsg.io/${epsg}.proj4`)
 		.then(response => response.text())
-		.then(def => {
-			const projected = reproject(mapGeoJson, 'EPSG:4326', crsDef)
-			mapGeoJson = toWgs84(projected, def)
-			crsDef = def
-			crs = nextCrs
+		.then(proj => {
+			const projected = reproject(mapGeoJson, 'EPSG:4326', crs.proj)
+			mapGeoJson = toWgs84(projected, proj)
+			crs = { epsg, proj }
 		})
 		.catch(err => console.error(err))
 	}
