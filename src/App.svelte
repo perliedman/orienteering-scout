@@ -1,5 +1,6 @@
 <script>
 	import Menu from './Menu.svelte'
+	import { Header, Subtitle } from '@smui/drawer'
 	import MapChooser from './MapChooser.svelte'
 	import CrsSnack from './CrsSnack.svelte'
 	import CrsDialog from './CrsDialog.svelte'
@@ -10,6 +11,7 @@
 	import { readOcad, ocadToGeoJson, ocadToMapboxGlStyle } from 'ocad2geojson'
 	import { reproject, toWgs84 } from 'reproject'
 
+	let mapInfo
 	let mapGeoJson
 	let mapLayers
 	let drawer
@@ -19,6 +21,10 @@
 	let crsDef = '+proj=tmerc +lat_0=0 +lon_0=12 +k=1 +x_0=150000 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs '
 
 	function loadMap(map) {
+		mapInfo = {
+			name: map.name
+		}
+
 		readOcad(map.content)
 		.then(ocadFile => {
 			mapGeoJson = toWgs84(ocadToGeoJson(ocadFile), crsDef)
@@ -30,14 +36,15 @@
 		crsDialogOpen = true
 	}
 
-	function setCrs ({ detail: { crs } }) {
+	function setCrs ({ detail: { crs: nextCrs } }) {
 		crsDialogOpen = false
-		window.fetch(`https://epsg.io/${crs}.proj4`)
+		window.fetch(`https://epsg.io/${nextCrs}.proj4`)
 		.then(response => response.text())
 		.then(def => {
 			const projected = reproject(mapGeoJson, 'EPSG:4326', crsDef)
 			mapGeoJson = toWgs84(projected, def)
 			crsDef = def
+			crs = nextCrs
 		})
 		.catch(err => console.error(err))
 	}
@@ -50,14 +57,22 @@
 	<Row>
 		<Section>
 			<IconButton class="material-icons" on:click={() => drawerOpen = !drawerOpen}>menu</IconButton>
-			<Title>Orienteering Scout</Title>
+			<Title>{mapInfo && mapInfo.name || 'Orienteering Scout'}</Title>
 		</Section>
 	</Row>
 </TopAppBar>
 <Drawer variant="modal" bind:this={drawer} bind:open={drawerOpen}>
+	<Header>
+		<Title>Orienteering Scout</Title>
+		{#if mapInfo}
+			<Subtitle>{mapInfo.name}</Subtitle>
+		{/if}
+	</Header>
   <Content>
 		<Menu
+			crs={crs}
 			on:close={() => drawerOpen = false}
+			on:selectcrs={openCrsDialog}
 			on:selectmap={() => { mapGeoJson = null; mapLayers = null; }} />
   </Content>
 </Drawer>

@@ -125,6 +125,7 @@
     if (map && currentGeojson !== geojson) {
       map.getSource('map').setData(geojson)
       currentGeojson = geojson
+      map.fitBounds(bbox(geojson))
     }
   })
 
