@@ -119,6 +119,23 @@
         highlighted = null
       }
     })
+    if (window.DeviceOrientationEvent) {
+      window.addEventListener('deviceorientation', event => {
+        let alpha;
+
+        if(event.webkitCompassHeading) {
+          alpha = event.webkitCompassHeading;
+        } else {
+          alpha = event.alpha;
+          if (!window.chrome) {
+            // Assume Android stock
+            alpha -= 270;
+          }
+        }
+
+        map.setBearing(180 - alpha)
+      })
+    }
   })
 
   afterUpdate(() => {
