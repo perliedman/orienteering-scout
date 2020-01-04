@@ -8,3 +8,7 @@ body {
 	margin: 0;
 	padding: 0;
 }
+
+.autorotate-control-active {
+	color: #33b5e5;
+}

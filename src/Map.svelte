@@ -4,6 +4,7 @@
   import mapboxgl from 'mapbox-gl'
   import 'mapbox-gl/dist/mapbox-gl.css'
   import bbox from '@turf/bbox'
+  import AutoRotateControl from './auto-rotate-control'
   import FeatureInfo from './FeatureInfo.svelte'
 
   mapboxgl.accessToken = '__mapboxGlToken__'
@@ -78,7 +79,8 @@
       center: [(bounds[0] + bounds[2]) / 2, (bounds[1] + bounds[3]) / 2],
       zoom: 14
     })
-    let geolocateControl = new mapboxgl.GeolocateControl({
+
+    const geolocateControl = new mapboxgl.GeolocateControl({
       positionOptions: {
         enableHighAccuracy: true
       },
@@ -86,6 +88,9 @@
     })
     geolocateControl.on('geolocate', e => userCoord = [e.coords.longitude, e.coords.latitude])
     map.addControl(geolocateControl);
+
+    const autoRotateControl = new AutoRotateControl()
+    map.addControl(autoRotateControl)
 
     map.on('load', () => {
       mapLoaded = true
@@ -119,23 +124,6 @@
         highlighted = null
       }
     })
-    if (window.DeviceOrientationEvent) {
-      window.addEventListener('deviceorientation', event => {
-        let alpha;
-
-        if(event.webkitCompassHeading) {
-          alpha = event.webkitCompassHeading;
-        } else {
-          alpha = event.alpha;
-          if (!window.chrome) {
-            // Assume Android stock
-            alpha -= 270;
-          }
-        }
-
-        map.setBearing(180 - alpha)
-      })
-    }
   })
 
   afterUpdate(() => {
@@ -162,5 +150,4 @@
 {/if}
 {#if !mapLoaded}
   <LinearProgress indeterminate />
-  <div class="loading">Please wait, loading map...</div>
 {/if}
