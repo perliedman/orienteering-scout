@@ -1,6 +1,6 @@
 <script>
   import LinearProgress from '@smui/linear-progress';
-	import { onMount } from 'svelte'
+	import { onMount, afterUpdate } from 'svelte'
   import mapboxgl from 'mapbox-gl'
   import 'mapbox-gl/dist/mapbox-gl.css'
   import bbox from '@turf/bbox'
@@ -13,6 +13,7 @@
 
   let mapContainer
   let map
+  let currentGeojson
   let snackbar
   let mapLoaded
   let highlightColor = '#f64'
@@ -69,6 +70,8 @@
   let highlighted
 
   onMount(() => {
+    currentGeojson = geojson
+
     map = new mapboxgl.Map({
       container: mapContainer,
       style,
@@ -116,6 +119,13 @@
         highlighted = null
       }
     })
+  })
+
+  afterUpdate(() => {
+    if (map && currentGeojson !== geojson) {
+      map.getSource('map').setData(geojson)
+      currentGeojson = geojson
+    }
   })
 
 </script>

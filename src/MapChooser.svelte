@@ -31,7 +31,7 @@
 
 <div class="container">
   <Fab extended color="primary" on:click={() => fileInput.click()}>
-    <Icon class="material-icons">cloud_upload</Icon>
+    <Icon class="material-icons">map</Icon>
     Select an OCAD map file
   </Fab>
   <input

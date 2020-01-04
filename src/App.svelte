@@ -1,27 +1,45 @@
 <script>
+	import Menu from './Menu.svelte'
 	import MapChooser from './MapChooser.svelte'
+	import CrsSnack from './CrsSnack.svelte'
+	import CrsDialog from './CrsDialog.svelte'
 	import Map from './Map.svelte'
   import TopAppBar, {Row, Section, Title} from '@smui/top-app-bar';
 	import IconButton from '@smui/icon-button';
   import Drawer, {AppContent, Content, Scrim} from '@smui/drawer';
-  import List, {Item, Text, Separator, Subheader} from '@smui/list';
 	import { readOcad, ocadToGeoJson, ocadToMapboxGlStyle } from 'ocad2geojson'
-	import { toWgs84 } from 'reproject'
+	import { reproject, toWgs84 } from 'reproject'
 
 	let mapGeoJson
 	let mapLayers
 	let drawer
 	let drawerOpen = false
+	let crsDialogOpen = false
+	let crs = 3007
+	let crsDef = '+proj=tmerc +lat_0=0 +lon_0=12 +k=1 +x_0=150000 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs '
 
 	function loadMap(map) {
-		// const projDef = '+proj=utm +zone=33 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs'
-		const projDef = '+proj=tmerc +lat_0=0 +lon_0=12 +k=1 +x_0=150000 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs '
-
 		readOcad(map.content)
 		.then(ocadFile => {
-			mapGeoJson = toWgs84(ocadToGeoJson(ocadFile), projDef)
+			mapGeoJson = toWgs84(ocadToGeoJson(ocadFile), crsDef)
 			mapLayers = ocadToMapboxGlStyle(ocadFile, {source: 'map', sourceLayer: ''})
 		})
+	}
+
+	function openCrsDialog () {
+		crsDialogOpen = true
+	}
+
+	function setCrs ({ detail: { crs } }) {
+		crsDialogOpen = false
+		window.fetch(`https://epsg.io/${crs}.proj4`)
+		.then(response => response.text())
+		.then(def => {
+			const projected = reproject(mapGeoJson, 'EPSG:4326', crsDef)
+			mapGeoJson = toWgs84(projected, def)
+			crsDef = def
+		})
+		.catch(err => console.error(err))
 	}
 </script>
 
@@ -38,14 +56,9 @@
 </TopAppBar>
 <Drawer variant="modal" bind:this={drawer} bind:open={drawerOpen}>
   <Content>
-    <List>
-      <Item href="javascript:void(0)">
-        <Text>Main</Text>
-      </Item>
-      <Item href="javascript:void(0)">
-        <Text>Other</Text>
-      </Item>
-    </List>
+		<Menu
+			on:close={() => drawerOpen = false}
+			on:selectmap={() => { mapGeoJson = null; mapLayers = null; }} />
   </Content>
 </Drawer>
 <Scrim />
@@ -53,4 +66,10 @@
 	<MapChooser on:mapselected={e => loadMap(e.detail)} />
 {:else}
 	<Map geojson={mapGeoJson} layers={mapLayers} />
+	<CrsSnack crs={crs} on:changecrs={openCrsDialog} />
+	<CrsDialog
+		crs={crs}
+		on:change={setCrs}
+		on:cancel={() => { crsDialogOpen = false }}
+		open={crsDialogOpen} />
 {/if}
