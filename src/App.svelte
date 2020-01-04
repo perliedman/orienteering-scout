@@ -10,6 +10,9 @@
   import Drawer, {AppContent, Content, Scrim} from '@smui/drawer';
 	import { readOcad, ocadToGeoJson, ocadToMapboxGlStyle } from 'ocad2geojson'
 	import { reproject, toWgs84 } from 'reproject'
+	import MapDb from './map-db'
+
+	const mapDb = new MapDb()
 
 	let mapInfo
 	let mapGeoJson
@@ -29,6 +32,11 @@
 
 		readOcad(map.content)
 		.then(ocadFile => {
+			const mapMeta = mapDb.get(map.name)
+			if (mapMeta) {
+				crs = mapMeta.crs
+			}
+
 			mapGeoJson = toWgs84(ocadToGeoJson(ocadFile), crs.proj)
 			mapLayers = ocadToMapboxGlStyle(ocadFile, {source: 'map', sourceLayer: ''})
 		})
@@ -46,6 +54,7 @@
 			const projected = reproject(mapGeoJson, 'EPSG:4326', crs.proj)
 			mapGeoJson = toWgs84(projected, proj)
 			crs = { epsg, proj }
+			mapDb.set(mapInfo.name, { crs })
 		})
 		.catch(err => console.error(err))
 	}
