@@ -20,6 +20,7 @@
   let highlightColor = '#f64'
   let highlightOpacity = 0.9
   let userCoord
+  let userBearing
   let highlights = [
     {
       'id': 'highlighted-Polygon',
@@ -80,6 +81,8 @@
       zoom: 14
     })
 
+    map.addControl(new mapboxgl.NavigationControl({showZoom: false}))
+
     const geolocateControl = new mapboxgl.GeolocateControl({
       positionOptions: {
         enableHighAccuracy: true
@@ -90,6 +93,7 @@
     map.addControl(geolocateControl);
 
     const autoRotateControl = new AutoRotateControl()
+    autoRotateControl.on('bearing', e => userBearing = e.bearing)
     map.addControl(autoRotateControl)
 
     map.on('load', () => {
@@ -146,7 +150,7 @@
 
 <div class="map-container" bind:this={mapContainer}></div>
 {#if highlighted}
-  <FeatureInfo feature={highlighted} userCoord={userCoord} />
+  <FeatureInfo feature={highlighted} userCoord={userCoord} userBearing={userBearing} />
 {/if}
 {#if !mapLoaded}
   <LinearProgress indeterminate />

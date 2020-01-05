@@ -1,6 +1,10 @@
-import { Event, Evented } from 'mapbox-gl/src/util/evented'
+import EventEmitter from 'events'
 
-export default class AutoRotateControl extends Evented {
+export default class AutoRotateControl {
+  constructor () {
+    this._eventEmitter = new EventEmitter()
+  }
+
   onAdd (map) {
     if (window.DeviceOrientationEvent) {
       this._map = map
@@ -38,6 +42,14 @@ export default class AutoRotateControl extends Evented {
     this._map = undefined
   }
 
+  on (type, handler) {
+    this._eventEmitter.addListener(type, handler)
+  }
+
+  off (type, handler) {
+    this._eventEmitter.removeListener(type, handler)
+  }
+
   onDeviceOrientation (event) {
     let alpha;
 
@@ -54,6 +66,6 @@ export default class AutoRotateControl extends Evented {
     const bearing = 180 - alpha
 
     this._map.setBearing(bearing)
-    this.fire(new Event('bearing', { bearing }))
+    this._eventEmitter.emit('bearing', { bearing })
   }
 }

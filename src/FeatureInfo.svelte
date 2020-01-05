@@ -2,25 +2,33 @@
   import distance from '@turf/distance'
   import pointToLineDistance from '@turf/point-to-line-distance'
   import polygonToLine from '@turf/polygon-to-line'
+  import bearing from '@turf/bearing'
+  import nearestPointOnLine from '@turf/nearest-point-on-line'
   import Card, { Content } from '@smui/card';
-	import { afterUpdate } from 'svelte'
+  import { beforeUpdate } from 'svelte'
 
   export let feature
   export let userCoord
+  export let userBearing
   let text
+  let objBearing
 
-  afterUpdate(() => {
+  beforeUpdate(() => {
     if (feature) {
       let fDistance
       if (userCoord) {
         try {
-          fDistance = getDistance()
+          [fDistance, objBearing] = getDistance()
         } catch (e) {
           console.error(e)
         }
       }
 
-      text = feature && `${feature.properties.name}${fDistance ? ', ' + formatDistance(fDistance) : ''}`
+      objBearing -= userBearing || 0
+
+      text = feature && 
+        feature.properties.name + 
+        (fDistance ? ', ' + formatDistance(fDistance) : '')
     }
   })
 
@@ -28,12 +36,21 @@
     const { geometry } = feature
     switch (geometry.type) {
       case 'Point':
-        return distance(userCoord, geometry.coordinates)
+        return [
+          distance(userCoord, geometry.coordinates),
+          bearing(userCoord, geometry.coordinates)
+        ]
       case 'LineString':
-        return pointToLineDistance(userCoord, feature)
+        return [
+          pointToLineDistance(userCoord, feature),
+          bearing(userCoord, nearestPointOnLine(feature, userCoord))
+        ]
       case 'Polygon':
         const line = polygonToLine(feature)
-        return pointToLineDistance(userCoord, line)
+        return [
+          pointToLineDistance(userCoord, line),
+          bearing(userCoord, nearestPointOnLine(line, userCoord))
+        ]
       default:
         console.warn(`Unknown geometry type ${geometry.type}`)
     }
@@ -56,11 +73,26 @@
 
     return `${d.toFixed(decimals)} ${unit}`
   }
+
+  function formatBearing (b) {
+    while (b < 0) {
+      b += 360
+    }
+    while (b > 360) {
+      b -= 360
+    }
+    return b.toFixed(0) + '°'    
+  }
 </script>
 
 <div class="card-container short">
   <Card>
-    <Content>{text}</Content>
+    <Content>
+      {text}
+      {#if !isNaN(objBearing)}
+        <span class="bearing" style={`transform: rotate(${objBearing}deg);`}>↑</span>
+      {/if}
+    </Content>
   </Card>
 </div>
 
@@ -73,5 +105,12 @@
     align-items: center;
     width: 100%;
     bottom: 8px;
+  }
+
+  .bearing {
+    display: inline-block;
+    font-size: 150%;
+    font-weight: bold;
+    vertical-align: middle;
   }
 </style>
