@@ -5,7 +5,6 @@
   import bearing from '@turf/bearing'
   import nearestPointOnLine from '@turf/nearest-point-on-line'
   import Card, { Content } from '@smui/card';
-  import { beforeUpdate } from 'svelte'
 
   export let feature
   export let userCoord
@@ -13,24 +12,22 @@
   let text
   let objBearing
 
-  beforeUpdate(() => {
-    if (feature) {
-      let fDistance
-      if (userCoord) {
-        try {
-          [fDistance, objBearing] = getDistance()
-        } catch (e) {
-          console.error(e)
-        }
+  $: if (feature) {
+    let fDistance
+    if (userCoord) {
+      try {
+        [fDistance, objBearing] = getDistance()
+      } catch (e) {
+        console.error(e)
       }
-
-      objBearing -= userBearing || 0
-
-      text = feature && 
-        feature.properties.name + 
-        (fDistance ? ', ' + formatDistance(fDistance) : '')
     }
-  })
+
+    objBearing -= userBearing || 0
+
+    text = feature && 
+      feature.properties.name + 
+      (fDistance ? ', ' + formatDistance(fDistance) : '')
+  }
 
   function getDistance () {
     const { geometry } = feature
