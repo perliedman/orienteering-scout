@@ -109,8 +109,9 @@
 
   .bearing {
     display: inline-block;
-    font-size: 150%;
-    font-weight: bold;
+    font-size: 250%;
+    font-weight: bolder;
+    margin-left: 16px;
     vertical-align: middle;
   }
 </style>
