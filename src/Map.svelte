@@ -94,6 +94,7 @@
 
     const autoRotateControl = new AutoRotateControl()
     autoRotateControl.on('bearing', e => userBearing = e.bearing)
+    autoRotateControl.on('disable', e => userBearing = undefined)
     map.addControl(autoRotateControl)
 
     map.on('load', () => {

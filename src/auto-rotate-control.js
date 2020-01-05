@@ -25,9 +25,11 @@ export default class AutoRotateControl {
         if (active) {      
           btn.classList.add('autorotate-control-active')
           window.addEventListener('deviceorientation', listener)
+          this._eventEmitter.emit('enable')
         } else {
           btn.classList.remove('autorotate-control-active')
           window.removeEventListener('deviceorientation', listener)
+          this._eventEmitter.emit('disable')
         }
       })
 
