@@ -18,6 +18,7 @@
     "svelte-material-ui": "^1.0.0-beta.19"
   },
   "dependencies": {
+    "@mapbox/togeojson": "^0.16.0",
     "@turf/bbox-polygon": "^6.0.1",
     "@turf/bearing": "^6.0.1",
     "@turf/boolean-point-in-polygon": "^6.0.1",

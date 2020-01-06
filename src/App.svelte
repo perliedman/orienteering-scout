@@ -8,6 +8,7 @@
 	import Highlight from './Highlight.svelte'
 	import Geolocate from './Geolocate.svelte'
 	import AutoRotate from './AutoRotate.svelte'
+	import TrackLine from './TrackLine.svelte'
 	import DistanceWarning from './DistanceWarning.svelte'
   import TopAppBar, {Row, Section, Title} from '@smui/top-app-bar';
 	import IconButton from '@smui/icon-button';
@@ -15,6 +16,7 @@
 	import { readOcad, ocadToGeoJson, ocadToMapboxGlStyle } from 'ocad2geojson'
 	import { reproject, toWgs84 } from 'reproject'
 	import MapDb from './map-db'
+	import togeojson from '@mapbox/togeojson'
 
 	const mapDb = new MapDb()
 
@@ -30,6 +32,8 @@
 	}
 	let userCoord
 	let userBearing
+	let trackFileInput
+	let tracks = []
 
 	function loadMap(map) {
 		mapInfo = {
@@ -63,6 +67,17 @@
 			mapDb.set(mapInfo.name, { crs })
 		})
 		.catch(err => console.error(err))
+	}
+
+	function loadTrack () {
+    const file = event.target.files[0]
+		const reader = new FileReader()
+		reader.onload = () => {
+			const dom = new DOMParser().parseFromString(reader.result, 'text/xml')
+			tracks = [...tracks, togeojson.gpx(dom)]
+		}
+		reader.onerror = err => console.error(err)
+		reader.readAsText(file)
 	}
 </script>
 
@@ -100,7 +115,8 @@
 					crs={crs}
 					on:close={() => drawerOpen = false}
 					on:selectcrs={openCrsDialog}
-					on:selectmap={() => { mapGeoJson = null; mapLayers = null; }} />
+					on:selectmap={() => { mapGeoJson = null; mapLayers = null; }}
+					on:selecttrack={() => { trackFileInput.click() }} />
 			</Content>
 		</Drawer>
 		<Scrim />
@@ -113,6 +129,9 @@
 				<Geolocate on:geolocate={e => { userCoord = e.detail }} />
 				<AutoRotate on:bearing={e => { userBearing = e.detail }} on:disable={() => { userBearing = undefined }} />
 				<Highlight userCoord={userCoord} userBearing={userBearing}></Highlight>
+				{#each tracks as t}
+					<TrackLine track={t} />
+				{/each}
 			</Map>
 			<CrsSnack crs={crs} on:changecrs={openCrsDialog} />
 			<CrsDialog
@@ -124,3 +143,10 @@
 		{/if}
 	</div>
 </div>
+
+<input
+	type="file"
+	accept=".gpx"
+	on:change={loadTrack}
+	bind:this={trackFileInput}
+	style="display: none;" />

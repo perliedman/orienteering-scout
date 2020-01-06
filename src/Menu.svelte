@@ -25,4 +25,7 @@
   <Item on:click={() => menuAction('selectmap')}>
     <Text>Map</Text>
   </Item>
+  <Item on:click={() => menuAction('selecttrack')}>
+    <Text>Track</Text>
+  </Item>
 </List>

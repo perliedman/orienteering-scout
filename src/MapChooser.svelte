@@ -8,8 +8,6 @@
 
   function handleFileSelected (event) {
     const file = event.target.files[0]
-    const reader = new FileReader()
-    const blob = new Blob([reader.result], {type: 'application/octet-stream'})
     toBuffer(file, (err, buffer) => {
       dispatch('mapselected', {
         name: file.name,
