@@ -43,7 +43,17 @@
           bearing(userCoord, nearestPointOnLine(feature, userCoord))
         ]
       case 'Polygon':
-        const line = polygonToLine(feature)
+        let line = polygonToLine(feature)
+        if (line.geometry.type === 'MultiLineString') {
+          line = {
+            type: 'Feature',
+            properties: line.properties,
+            geometry: {
+              type: 'LineString',
+              coordinates: line.geometry.coordinates[0]
+            }
+          }
+        }
         return [
           pointToLineDistance(userCoord, line),
           bearing(userCoord, nearestPointOnLine(line, userCoord))
