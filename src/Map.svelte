@@ -1,11 +1,8 @@
 <script>
   import LinearProgress from '@smui/linear-progress';
-	import { onMount, afterUpdate } from 'svelte'
-  import mapboxgl from 'mapbox-gl'
-  import 'mapbox-gl/dist/mapbox-gl.css'
+	import { onMount, afterUpdate, setContext } from 'svelte'
+  import { mapboxgl, key as contextKey } from './mapbox'
   import bbox from '@turf/bbox'
-  import AutoRotateControl from './auto-rotate-control'
-  import FeatureInfo from './FeatureInfo.svelte'
 
   mapboxgl.accessToken = '__mapboxGlToken__'
 
@@ -17,45 +14,8 @@
   let currentGeojson
   let snackbar
   let mapLoaded
-  let highlightColor = '#f64'
-  let highlightOpacity = 0.9
   let userCoord
   let userBearing
-  let highlights = [
-    {
-      'id': 'highlighted-Polygon',
-      'type': 'fill',
-      'source': 'map',
-      'paint': {
-        'fill-outline-color': highlightColor,
-        'fill-color': highlightColor,
-        'fill-opacity': highlightOpacity
-      },
-      'filter': ['==', ['id'], '']
-    },
-    {
-      'id': 'highlighted-LineString',
-      'type': 'line',
-      'source': 'map',
-      'paint': {
-        'line-color': highlightColor,
-        'line-width': 10,
-        'line-opacity': highlightOpacity
-      },
-      'filter': ['==', ['id'], '']
-    },
-    {
-      'id': 'highlighted-Point',
-      'type': 'circle',
-      'source': 'map',
-      'paint': {
-        'circle-color': highlightColor,
-        'circle-opacity': highlightOpacity,
-        'circle-radius': 10,
-      },
-      'filter': ['==', ['id'], '']
-    }
-  ]
   let style = {
     version: 8,
     name: 'OCAD demo',
@@ -66,10 +26,13 @@
         data: geojson
       }
     },
-    layers: [...layers, ...highlights]
+    layers
   }
   let bounds = bbox(geojson)
-  let highlighted
+
+  setContext(contextKey, {
+    getMap: () => map
+  })
 
   onMount(() => {
     currentGeojson = geojson
@@ -83,51 +46,9 @@
 
     map.addControl(new mapboxgl.NavigationControl({showZoom: false}))
 
-    const geolocateControl = new mapboxgl.GeolocateControl({
-      positionOptions: {
-        enableHighAccuracy: true
-      },
-      trackUserLocation: true
-    })
-    geolocateControl.on('geolocate', e => userCoord = [e.coords.longitude, e.coords.latitude])
-    map.addControl(geolocateControl);
-
-    const autoRotateControl = new AutoRotateControl()
-    autoRotateControl.on('bearing', e => userBearing = e.bearing)
-    autoRotateControl.on('disable', e => userBearing = undefined)
-    map.addControl(autoRotateControl)
-
     map.on('load', () => {
       mapLoaded = true
       map.fitBounds(bounds)
-    })
-
-    map.on('click', e => {
-      const features = map.queryRenderedFeatures(e.point)
-
-      ;['Point', 'LineString', 'Polygon'].forEach(t =>
-        map.setFilter(`highlighted-${t}`, ['==', ['id'], '']))
-
-      if (features.length > 0) {
-        const feature = features[0]
-        const highlightLayer = `highlighted-${feature.geometry.type}`
-        const filterExpr = feature.properties.parentId
-          ? ['get', 'parentId']
-          : ['id']
-        const filterId = feature.properties.parentId
-          ? feature.properties.parentId
-          : feature.id
-        map.setFilter(highlightLayer, ['==', filterExpr, filterId])
-        highlighted = {
-          type: 'Feature',
-          properties: {
-            name: feature.layer.metadata.description
-          },
-          geometry: feature.geometry
-        }
-      } else {
-        highlighted = null
-      }
     })
   })
 
@@ -143,16 +64,17 @@
 
 <style>
   .map-container {
-    position: absolute;
+    position: relative;
     width: 100%;
     height: 100%;
   }
 </style>
 
-<div class="map-container" bind:this={mapContainer}></div>
-{#if highlighted}
-  <FeatureInfo feature={highlighted} userCoord={userCoord} userBearing={userBearing} />
-{/if}
+<div class="map-container" bind:this={mapContainer}>
+  {#if map}
+    <slot></slot>
+  {/if}
+</div>
 {#if !mapLoaded}
   <LinearProgress indeterminate />
 {/if}
