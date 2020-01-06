@@ -24,8 +24,8 @@
 	let drawerOpen = false
 	let crsDialogOpen = false
 	let crs = {
-		epsg: 3007,
-		proj: '+proj=tmerc +lat_0=0 +lon_0=12 +k=1 +x_0=150000 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs '
+		epsg: 3006,
+		proj: '+proj=utm +zone=33 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs '
 	}
 	let userCoord
 	let userBearing
