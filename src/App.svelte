@@ -8,6 +8,7 @@
 	import Highlight from './Highlight.svelte'
 	import Geolocate from './Geolocate.svelte'
 	import AutoRotate from './AutoRotate.svelte'
+	import DistanceWarning from './DistanceWarning.svelte'
   import TopAppBar, {Row, Section, Title} from '@smui/top-app-bar';
 	import IconButton from '@smui/icon-button';
   import Drawer, {AppContent, Content, Scrim} from '@smui/drawer';
@@ -119,6 +120,7 @@
 				on:change={setCrs}
 				on:cancel={() => { crsDialogOpen = false }}
 				open={crsDialogOpen} />
+			<DistanceWarning mapGeoJson={mapGeoJson} userCoord={userCoord} on:selectcrs={openCrsDialog} />
 		{/if}
 	</div>
 </div>
