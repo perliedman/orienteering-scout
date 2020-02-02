@@ -22,12 +22,14 @@ export default class AutoRotateControl {
       btn.addEventListener('click', () => {
         active = !active
 
-        if (active) {      
+        if (active) {
           btn.classList.add('autorotate-control-active')
+          window.addEventListener('deviceorientationabsolute', listener)
           window.addEventListener('deviceorientation', listener)
           this._eventEmitter.emit('enable')
         } else {
           btn.classList.remove('autorotate-control-active')
+          window.removeEventListener('deviceorientationabsolute', listener)
           window.removeEventListener('deviceorientation', listener)
           this._eventEmitter.emit('disable')
         }
@@ -53,6 +55,8 @@ export default class AutoRotateControl {
   }
 
   onDeviceOrientation (event) {
+    if (!event.absolute) return
+
     let alpha;
 
     if(event.webkitCompassHeading) {
