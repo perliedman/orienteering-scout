@@ -56,22 +56,8 @@ export default class AutoRotateControl {
 
   onDeviceOrientation (event) {
     if (!event.absolute) return
-
-    let alpha;
-
-    if(event.webkitCompassHeading) {
-      alpha = event.webkitCompassHeading;
-    } else {
-      alpha = event.alpha;
-      if (!window.chrome) {
-        // Assume Android stock
-        alpha -= 270;
-      }
-    }
-
-    const bearing = 180 - alpha
-
+    const bearing = event.alpha
     this._map.setBearing(bearing)
-    this._eventEmitter.emit('bearing', { bearing })
+    this._eventEmitter.emit('bearing', { bearing, originalEvent: event })
   }
 }
