@@ -43,12 +43,25 @@
 		readOcad(map.content)
 		.then(ocadFile => {
 			const mapMeta = mapDb.get(map.name)
+			let crsPromise
 			if (mapMeta) {
-				crs = mapMeta.crs
+				crsPromise = Promise.resolve(mapMeta.crs)
+			} else {
+				const { catalog, code } = ocadFile.getCrs()
+				if (catalog === 'EPSG') {
+					crsPromise = fetchCrs(code)
+				} else {
+					crsPromise = Promise.resolve(mapMeta.crs)
+				}
 			}
-
-			mapGeoJson = toWgs84(ocadToGeoJson(ocadFile), crs.proj)
-			mapLayers = ocadToMapboxGlStyle(ocadFile, {source: 'map', sourceLayer: ''})
+			return crsPromise.then(mapCrs => {
+				crs = mapCrs
+				mapGeoJson = toWgs84(ocadToGeoJson(ocadFile), crs.proj)
+				mapLayers = ocadToMapboxGlStyle(ocadFile, {source: 'map', sourceLayer: ''})
+			})
+		})
+		.catch(err => {
+			console.error(err)
 		})
 	}
 
@@ -58,15 +71,19 @@
 
 	function setCrs ({ detail: { epsg } }) {
 		crsDialogOpen = false
-		window.fetch(`https://epsg.io/${epsg}.proj4`)
-		.then(response => response.text())
-		.then(proj => {
-			const projected = reproject(mapGeoJson, 'EPSG:4326', crs.proj)
-			mapGeoJson = toWgs84(projected, proj)
-			crs = { epsg, proj }
-			mapDb.set(mapInfo.name, { crs })
-		})
-		.catch(err => console.error(err))
+		fetchCrs(epsg)
+			.then(crs => {
+				const projected = reproject(mapGeoJson, 'EPSG:4326', crs.proj)
+				mapGeoJson = toWgs84(projected, crs.proj)
+				mapDb.set(mapInfo.name, { crs })
+			})
+			.catch(err => console.error(err))
+	}
+
+	function fetchCrs(epsg) {
+		return window.fetch(`https://epsg.io/${epsg}.proj4`)
+			.then(response => response.text())
+			.then(proj => ({ epsg, proj }))
 	}
 
 	function loadTrack () {
